@@ -32,7 +32,7 @@ app.use("/api/auth", authRoute);
 app.use("/api/chats", authMiddleware.protect, chatRouter);
 app.use("/api/conversations", authMiddleware.protect, conversationRouter);
 
-server.listen(process.env.PORT, () => {
+server.listen(3000, () => {
   const os = require("os");
   const ifaces = os.networkInterfaces();
   let ipAddress = "";
