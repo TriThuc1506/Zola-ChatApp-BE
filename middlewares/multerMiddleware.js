@@ -8,8 +8,9 @@ const uploadImage = new CloudinaryStorage({
     // folder: "Zalo_Fake_App",
     allowed_formats: ["jpg", "png", "jpeg","webp"],
     public_id: (req, file) => {
-      return `zaloFake_${file.fieldname}_${Date.now()}_${req.user.user_id}`;
+      return `zaloFake_${Date.now()}_${req.user.user_id}`;
     },
+    access_mode: "public" 
   },
 });
 
@@ -22,20 +23,20 @@ const uploadVideo = new CloudinaryStorage({
     allowed_formats: ["mp4","mkv","webm","ogg","avi","mov"],
     resource_type: "video",
     public_id: (req, file) => {
-      return `zaloFake_${file.fieldname}_${Date.now()}_${req.user.user_id}`;
+      return `zaloFake_${Date.now()}_${req.user.user_id}`;
     },
+    access_mode: "public" 
   },
 });
 
 const uploadFile = new CloudinaryStorage({
   cloudinary,
   params: {
-    // folder: "Zalo_Fake_App",
-    allowed_formats: ["docx", "pdf", "xlsx", "xls"],
     resource_type: "auto",
     public_id: (req, file) => {
-      return `zaloFake_${file.fieldname}_${Date.now()}_${req.user.user_id}`;
+      return `zaloFake_${Date.now()}_${req.user.user_id}`;
     },
+    access_mode: "public" 
   },
 });
 

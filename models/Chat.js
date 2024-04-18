@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Group = require("../models/Group");
+const Conversation = require("../models/Conversation");
 
 const chatSchema = new mongoose.Schema({
   senderId: {
@@ -28,29 +30,45 @@ const chatSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  replyMessageId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    default: null,
+  },
 });
 
 chatSchema.post("save", async function (chat, next) {
   try {
-    const Conversation = mongoose.model("Conversation");
-
-    const conversation = await Conversation.findOne({
-      participants: { $all: [chat.senderId, chat.receiverId] },
-    });
-    const date = Date.now().toString();
-    // const senderId = chat.senderId.toString();
-    // const receiverId = chat.receiverId.toString();
-    // console.log("chat.senderId: ",senderId);
-    // console.log("chat.receiverId: ",receiverId);
-    // console.log("date: ",date);
-    // console.log("conversation: ", conversation);
-    if (!conversation) {
-      const newConversation = new Conversation({
-        participants: [chat.senderId, chat.receiverId],
-        messages: [chat._id],
-        lastMessage: chat._id,
+    if (!chat.isGroup) {
+      const conversation = await Conversation.findOne({
+        participants: { $all: [chat.senderId, chat.receiverId] },
+        tag: "friend",
       });
-      await newConversation.save();
+
+      if (!conversation) {
+        const newConversation = new Conversation({
+          participants: [chat.senderId, chat.receiverId],
+          messages: [chat._id],
+          lastMessage: chat._id,
+        });
+
+        await newConversation.save();
+      } else {
+        conversation.messages.push(chat._id);
+        conversation.lastMessage = chat._id;
+        await conversation.save();
+      }
+    } else {
+      const group = await Group.findById(chat.receiverId);
+
+      const groupConversation = await Conversation.findById(group?.conversation);
+      if (groupConversation) {
+        groupConversation.messages.push(chat._id);
+        groupConversation.lastMessage = chat._id;
+        group.lastMessage = chat._id;
+        await groupConversation.save();
+        await group.save();
+      }
     }
     next();
   } catch (error) {

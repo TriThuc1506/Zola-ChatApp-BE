@@ -6,7 +6,7 @@ const {
   deleteChat,
   getFirstMessage,
   setStatusMessage,
-  getHistoryMessageMobile
+  getHistoryMessageMobile,
 } = require("../controllers/chat.controller");
 const {
   multerUploadImage,
@@ -22,23 +22,20 @@ router.get("/getHistoryMessage/:userId", getHistoryMessageMobile);
 // Lấy danh sách tin nhắn cá nhân với một người dùng cụ thể với userId là người nhận
 router.get("/:userId/getFirstMessage", getFirstMessage);
 
-
-// Gửi image mới cho một người dùng cụ thể 
+// Gửi image mới cho một người dùng cụ thể
 router.post(
   "/:userId/sendImages",
-  multerUploadImage.array("data[]")
-  ,
+  multerUploadImage.array("data[]"),
   formatBodyData,
   sendMessage
 );
 
-// Gửi text mới cho một người dùng cụ thể 
+// Gửi text mới cho một người dùng cụ thể
 router.post(
   "/:userId/sendText",
-  formatBodyData,
+  multerUploadImage.array("data"),
   sendMessage
 );
-
 
 // Gửi video mới cho một người dùng cụ thể
 router.post(
@@ -48,9 +45,18 @@ router.post(
   sendMessage
 );
 
+
+// Gửi file mới cho một người dùng cụ thể
+router.post(
+  "/:userId/sendFiles",
+  multerUploadFile.array("data[]"),
+  formatBodyData,
+  sendMessage
+);
+
+
 // Xóa tin nhắn cụ thể
 router.post("/:chatId/delete", deleteChat);
-
 
 //Cập nhật status theo chatId
 router.post("/updateStatus/:chatId", setStatusMessage);

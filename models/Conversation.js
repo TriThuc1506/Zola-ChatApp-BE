@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const ConversationSchema = new mongoose.Schema({
   participants: [
-    { type: mongoose.Schema.Types.ObjectId, unique: false, ref: "users" },
+    { type: mongoose.Schema.Types.ObjectId, unique: false, index:false , ref: "users" },
   ],
   messages: [{ type: mongoose.Schema.Types.ObjectId, ref: "chats" }],
   lastMessage: { type: mongoose.Schema.Types.ObjectId, ref: "chats" },

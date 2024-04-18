@@ -63,7 +63,6 @@ exports.loginUser = async (req, res) => {
       await createOrUpdateSession(user._id, device_id, app_type, refreshToken);
       const {
         password,
-        _id,
         friends,
         groups,
         createdAt,

@@ -42,7 +42,6 @@ exports.getMe = async (req, res) => {
     }
     const {
       password,
-      _id,
       friends,
       groups,
       createdAt,
