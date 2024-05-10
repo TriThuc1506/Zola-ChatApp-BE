@@ -11,6 +11,7 @@ const {
   deleteGroup,
   leaveGroup,
   changeAdmins,
+  getGroupByParticipants,
 } = require("../controllers/group.controller");
 const { multerUploadImage } = require("../middlewares/multerMiddleware");
 const { protect } = require("../middlewares/authMiddleware");
