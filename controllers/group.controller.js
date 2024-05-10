@@ -99,6 +99,80 @@ exports.getGroup = async (req, res) => {
   }
 };
 
+exports.getGroupByParticipants = async (req, res) => {
+  try {
+    const { participants } = req.body;
+    const token = req.headers.authorization.split(" ")[1];
+    const user = jwt.verify(token, process.env.JWT_SECRET);
+    if (!participants || participants.length < 1) {
+      return res.status(400).json({ error: "Participants are required" });
+    }
+    
+    participants.push(user.user_id);
+    const groups = await Group.aggregate([
+      {
+        $lookup: {
+          from: "conversations",
+          localField: "conversation",
+          foreignField: "_id",
+          as: "conversation",
+        },
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "createBy",
+          foreignField: "_id",
+          as: "createBy",
+        },
+      },
+      {
+        $unwind: "$conversation",
+      },
+      {
+        $match: {
+          "conversation.participants": {
+            $all: participants.map((p) => new mongoose.Types.ObjectId(p)),
+          },
+        },
+      },
+      {
+        $project: {
+          groupName: 1,
+          avatar: 1,
+          createBy: {
+            $arrayElemAt: [
+              {
+                $map: {
+                  input: "$createBy",
+                  as: "creator",
+                  in: {
+                    profile: "$$creator.profile",
+                    _id: "$$creator._id",
+                  },
+                },
+              },
+              0,
+            ],
+          },
+          conversation: {
+            _id: 1,
+            participants: 1,
+            lastMessage: 1,
+            tag: 1,
+          },
+          admins: 1,
+        },
+      },
+    ]);
+
+    return res.status(200).json(groups);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+};
+
 exports.getAllGroup = async (req, res) => {
   try {
     const token = req.headers.authorization.split(" ")[1];

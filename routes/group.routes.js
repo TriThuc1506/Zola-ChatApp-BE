@@ -17,6 +17,7 @@ const { protect } = require("../middlewares/authMiddleware");
 
 router.get("/get/:groupId", protect, getGroup);
 router.get("/all", protect, getAllGroup);
+router.get("/get-by-participants", protect, getGroupByParticipants);
 
 router.post(
   "/create",
