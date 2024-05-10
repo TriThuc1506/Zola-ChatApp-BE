@@ -655,32 +655,41 @@ exports.makeMemberToAdmin = async (req, res) => {
     }
 
     const token = req.headers.authorization.split(" ")[1];
-    const uid = jwt.verify(token, process.env.JWT_SECRET)
-    const group = await Group.findById(groupId)
-    .populate([
+    const uid = jwt.verify(token, process.env.JWT_SECRET);
+    const group = await Group.findById(groupId).populate([
       {
         path: "conversation",
-        select: "-messages -createdAt -__v"
-      }
+        select: "-messages -createdAt -__v",
+        populate: {
+          path: "participants",
+          select: "profile _id",
+        },
+      },
+      {
+        path: "createBy",
+        select: "profile _id",
+      },
     ]);
 
     if (!group) {
       return res.status(404).json({ error: "Group not found" });
     }
-    
 
     if (group.createBy._id.toString() !== uid.user_id) {
       return res.status(403).json({ error: "You don't have permisiion !" });
     }
 
-    if(!group.conversation.participants.includes(userId)){
+    if (
+      !group.conversation.participants.some((p) => p._id.toString() === userId)
+    ) {
       return res.status(404).json({ error: "User not in group" });
     }
 
     if (!group.admins.includes(userId)) {
       group.admins.push(userId);
     }
-    group.createBy = userId;
+    const user = await User.findById(userId);
+    group.createBy = user;
     group.admins = group.admins.filter((a) => a.toString() !== uid.user_id);
     await group.save();
     group.conversation.participants.forEach(async (member) => {
@@ -693,13 +702,25 @@ exports.makeMemberToAdmin = async (req, res) => {
               name: group.groupName,
               admins: group.admins,
               createBy: group.createBy,
-            }
+            },
           });
         }
       }
     });
 
-    return res.status(200).json({ group });
+    return res.status(200).json({
+      group: {
+        _id: group._id,
+        groupName: group.groupName,
+        admins: group.admins,
+        createBy: {
+          profile: user.profile,
+          _id: user._id,
+        },
+        conversation: group.conversation,
+        avatar: group.avatar,
+      }
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ error: "Something went wrong" });
