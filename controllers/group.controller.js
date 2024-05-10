@@ -646,3 +646,62 @@ exports.changeAdmins = async (req, res) => {
     return res.status(500).json({ error: "Something went wrong" });
   }
 };
+
+exports.makeMemberToAdmin = async (req, res) => {
+  try {
+    const { groupId, userId } = req.body;
+    if (!userId || !groupId) {
+      return res.status(400).json({ error: "Missing paramaster !" });
+    }
+
+    const token = req.headers.authorization.split(" ")[1];
+    const uid = jwt.verify(token, process.env.JWT_SECRET)
+    const group = await Group.findById(groupId)
+    .populate([
+      {
+        path: "conversation",
+        select: "-messages -createdAt -__v"
+      }
+    ]);
+
+    if (!group) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+    
+
+    if (group.createBy._id.toString() !== uid.user_id) {
+      return res.status(403).json({ error: "You don't have permisiion !" });
+    }
+
+    if(!group.conversation.participants.includes(userId)){
+      return res.status(404).json({ error: "User not in group" });
+    }
+
+    if (!group.admins.includes(userId)) {
+      group.admins.push(userId);
+    }
+    group.createBy = userId;
+    group.admins = group.admins.filter((a) => a.toString() !== uid.user_id);
+    await group.save();
+    group.conversation.participants.forEach(async (member) => {
+      if (member.toString() !== uid.user_id) {
+        const memderSocketId = await getReciverSocketId(member);
+        if (memderSocketId) {
+          io.to(memderSocketId.socket_id).emit("member-to-admin", {
+            group: {
+              id: group._id,
+              name: group.groupName,
+              admins: group.admins,
+              createBy: group.createBy,
+            }
+          });
+        }
+      }
+    });
+
+    return res.status(200).json({ group });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Something went wrong" });
+  }
+};

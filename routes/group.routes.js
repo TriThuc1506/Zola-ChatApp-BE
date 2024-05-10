@@ -12,6 +12,7 @@ const {
   leaveGroup,
   changeAdmins,
   getGroupByParticipants,
+  makeMemberToAdmin,
 } = require("../controllers/group.controller");
 const { multerUploadImage } = require("../middlewares/multerMiddleware");
 const { protect } = require("../middlewares/authMiddleware");
@@ -30,6 +31,7 @@ router.post("/addMembers/:groupId", protect, addMember);
 router.post("/removeMembers/:groupId", protect, removeMember);
 router.post("/leave/:groupId", protect, leaveGroup);
 router.post("/changeAdmins", protect, changeAdmins);
+router.post("/make-member-to-admin", protect, makeMemberToAdmin);
 
 router.put(
   "/update/:groupId",
