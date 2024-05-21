@@ -17,7 +17,11 @@ const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({ extended: true }));
 
 dotenv.config();
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+  })
+);
 app.use(express.json());
 app.use(CookieParser());
 app.use(express.static("public"));
