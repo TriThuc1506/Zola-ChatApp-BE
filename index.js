@@ -12,6 +12,7 @@ const chatRouter = require("./routes/chat.routes");
 const conversationRouter = require("./routes/conversation.routes");
 
 const bodyParser = require("body-parser");
+const { get } = require("http");
 
 // Sử dụng body-parser middleware để xử lý dữ liệu form-urlencoded
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -20,6 +21,7 @@ dotenv.config();
 app.use(
   cors({
     origin: "*",
+    methods:"*"
   })
 );
 app.use(express.json());
