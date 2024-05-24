@@ -10,9 +10,7 @@ exports.sendMessage = async (req, resp) => {
     const senderId = req.user.user_id;
     const receiverId = req.params.userId;
     const isGroup = JSON.parse(req.body.isGroup || false);
-    const replyMessageId = JSON.parse(req.body.replyMessageId || null);
-
-    console.log("body :", req.body);
+    const replyMessageId = req.body.replyMessageId === "null" ? null : req.body.replyMessageId;
     let contents = [];
     if (req.body.data) {
       contents.push({
@@ -36,7 +34,6 @@ exports.sendMessage = async (req, resp) => {
     if (!contents || !contents.length) {
       throw new Error("Contents are empty or contain no fields");
     }
-    console.log("Content : ", contents);
     const message = new Chat({
       senderId,
       receiverId,
@@ -44,8 +41,6 @@ exports.sendMessage = async (req, resp) => {
       isGroup,
       replyMessageId,
     });
-
-    console.log("Message : ", message);
 
     const saveMessage = (await message.save()).populate({
       path: "replyMessageId",
@@ -57,13 +52,14 @@ exports.sendMessage = async (req, resp) => {
 
 
     const group = await Group.findById(receiverId).populate("conversation");
-
+  
     let conversation;
     if (!group) {
       conversation = await Conversation.findOne({
         participants: { $all: [senderId, receiverId] },
         tag: "friend",
       });
+    
     } else {
       conversation = group.conversation;
     }
