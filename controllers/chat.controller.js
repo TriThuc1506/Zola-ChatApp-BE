@@ -10,7 +10,8 @@ exports.sendMessage = async (req, resp) => {
     const senderId = req.user.user_id;
     const receiverId = req.params.userId;
     const isGroup = JSON.parse(req.body.isGroup || false);
-    const replyMessageId = req.body.replyMessageId === "null" ? null : req.body.replyMessageId;
+    const replyMessageId =
+      req.body.replyMessageId === "null" ? null : req.body.replyMessageId;
     let contents = [];
     if (req.body.data) {
       contents.push({
@@ -50,16 +51,14 @@ exports.sendMessage = async (req, resp) => {
       return values[0];
     });
 
-
     const group = await Group.findById(receiverId).populate("conversation");
-  
+
     let conversation;
     if (!group) {
       conversation = await Conversation.findOne({
         participants: { $all: [senderId, receiverId] },
         tag: "friend",
       });
-    
     } else {
       conversation = group.conversation;
     }
@@ -208,8 +207,7 @@ exports.setStatusMessage = async (req, res) => {
 
     if (chat.senderId.equals(userIdCurrent)) {
       if (chat.status === 0 || chat.status === null) {
-        chat.status = 1;
-        await chat.save();
+        await chat.updateOne({ status: 1 });
         res.status(200).json({ message: "Update status success" });
       } else {
         try {
@@ -221,12 +219,9 @@ exports.setStatusMessage = async (req, res) => {
       }
     } else {
       if (chat.status === 0 || chat.status === null) {
-        console.log("Đang đổi status");
-        chat.status = 2;
-        await chat.save();
+        await chat.updateOne({ status: 2 });
         res.status(200).json({ message: "Update status success" });
       } else {
-        console.log("Đang xóa");
         try {
           await Chats.findByIdAndDelete(chatId);
           res.status(200).json({ message: "Update status success" });
